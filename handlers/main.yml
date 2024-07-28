@@ -1,0 +1,4 @@
+- name: Restart Cyrus IMAP
+  ansible.builtin.service:
+    name: "cyrus-imapd"
+    state: "restarted"

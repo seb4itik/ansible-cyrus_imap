@@ -1,0 +1,27 @@
+galaxy_info:
+  role_name: "cyrus_imap"
+  namespace: "seb4itik"
+
+  author: "Sébastien Namèche"
+  description: "Install and configure Cyrus IMAP/POP/NNTP server."
+
+  company: "iTik"
+
+  license: "MIT"
+
+  min_ansible_version: "2.16"
+
+  platforms:
+    - name: "Debian"
+      versions:
+        - "bookworm"
+#   - name: "Ubuntu"
+#     versions:
+#       - "jammy"
+
+  galaxy_tags:
+    - "cyrus-imap"
+    - "imap"
+    - "pop"
+
+dependencies: []

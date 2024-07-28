@@ -1,0 +1,24 @@
+- name: Deactivate SSL from Cyrus IMAP
+  when: "not cyrus_imap_ssl"
+  notify: Restart Cyrus IMAP
+  block:
+    - name: Get info from group {{ cyrus_imap_ssl_group }}
+      ansible.builtin.getent:
+        database: "group"
+        key: "{{ cyrus_imap_ssl_group }}"
+      register: out_ssl_group
+    - name: Get list members of group {{ cyrus_imap_ssl_group }}
+      ansible.builtin.set_fact:
+        ssl_group_members: "{{ out_ssl_group.ansible_facts.getent_group[cyrus_imap_ssl_group][2] | split(',') }}"
+    - name: Remove Cyrus IMAP user from SSL group
+      when: "cyrus_imap_user in ssl_group_members"
+      ansible.builtin.command: "/usr/sbin/delgroup {{ cyrus_imap_user }} {{ cyrus_imap_ssl_group }}"
+      changed_when: true
+
+- name: Activate SSL for Cyrus IMAP
+  when: "cyrus_imap_ssl"
+  notify: Restart Cyrus IMAP
+  ansible.builtin.user:
+    user: "{{ cyrus_imap_user }}"
+    groups: ["{{ cyrus_imap_ssl_group }}"]
+    append: true

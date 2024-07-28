@@ -1,0 +1,6 @@
+cyrus_imap_user: "cyrus"
+cyrus_imap_ssl: false
+cyrus_imap_ssl_group: "ssl-cert"
+
+cyrus_imap_services: {}
+cyrus_imap_config: {}

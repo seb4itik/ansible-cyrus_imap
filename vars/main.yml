@@ -1,0 +1,250 @@
+cyrus_imap_default_services:
+
+  start:
+    # do not delete this entry!
+    recover:
+      active: true
+      cmd: "/usr/sbin/cyrus ctl_cyrusdb -r"
+    # this is only necessary if idlemethod is set to "idled" in imapd.conf
+    idled:
+      active: false
+      cmd: "idled"
+    # this is useful on backend nodes of a Murder cluster
+    # it causes the backend to synchronize its mailbox list with
+    # the mupdate master upon startup
+    mupdatepush:
+      active: false
+      cmd: "/usr/sbin/cyrus ctl_mboxlist -m"
+    # this is recommended if using duplicate delivery suppression
+    delprune:
+      active: true
+      cmd: "/usr/sbin/cyrus expire -E 3"
+    # this is recommended if caching TLS sessions
+    tlsprune:
+      active: true
+      cmd: "/usr/sbin/cyrus tls_prune"
+    # nettoyage du plugin pour Prometheus
+    statscleanup:
+      active: false
+      cmd: "/usr/sbin/cyrus promstatsd -c"
+
+  # UNIX sockets start with a slash and are absolute paths
+  # you can use a maxchild=# to limit the maximum number of forks of a service
+  # you can use babysit=true and maxforkrate=# to keep tight tabs on the service
+  # most services also accept -U (limit number of reuses) and -T (timeout)
+  services:
+    imap:
+      active: true
+      cmd: "imapd -U 30"
+      proto: "tcp4"
+      listen: "imap"
+      prefork: 0
+      maxchild: 100
+    imaps:
+      active: false
+      cmd: "imapd -s -U 30"
+      proto: "tcp4"
+      listen: "imaps"
+      prefork: 0
+      maxchild: 100
+    pop3:
+      active: true
+      cmd: "pop3d -U 30"
+      proto: "tcp4"
+      listen: "pop3"
+      prefork: 0
+      maxchild: 50
+    pop3s:
+      active: false
+      cmd: "pop3d -s -U 30"
+      proto: "tcp4"
+      listen: "pop3s"
+      prefork: 0
+      maxchild: 50
+    nntp:
+      active: true
+      cmd: "nntpd -U 30"
+      proto: "tcp4"
+      listen: "nntp"
+      prefork: 0
+      maxchild: 100
+    nntps:
+      active: false
+      cmd: "nntpd -s -U 30"
+      proto: "tcp4"
+      listen: "nntps"
+      prefork: 0
+      maxchild: 100
+    http:
+      active: true
+      cmd: "httpd -U 30"
+      proto: "tcp4"
+      listen: "8008"
+      prefork: 0
+      maxchild: 100
+    https:
+      active: false
+      cmd: "httpd -s -U 30"
+      proto: "tcp4"
+      listen: "8443"
+      prefork: 0
+      maxchild: 100
+
+    # At least one form of LMTP is required for delivery
+    # (you must keep the Unix socket name in sync with imap.conf)
+    lmtp:
+      active: false
+      cmd: "lmtpd"
+      listen: "localhost:lmtp"
+      prefork: 0
+      maxchild: 20
+    lmtpunix:
+      active: true
+      cmd: "lmtpd"
+      listen: "/run/cyrus/socket/lmtp"
+      prefork: 0
+      maxchild: 20
+
+    # useful if you need to give users remote access to sieve
+    # by default, we limit this to localhost in Debian
+    sieve:
+      active: true
+      cmd: "timsieved"
+      proto: "tcp4"
+      listen: "localhost:sieve"
+      prefork: 0
+      maxchild: 100
+
+    # this one is needed for the notification services
+    notify:
+      active: true
+      cmd: "notifyd"
+      listen: "/run/cyrus/socket/notify"
+      proto: "udp"
+      prefork: 1
+
+    # --- Murder frontends -------------------------
+    # enable these and disable the matching services above,
+    # except for sieve (which deals automatically with Murder)
+    # mupdate database service - must prefork at least 1
+
+    # (mupdate slaves)
+    mupdateslave:
+      active: false
+      cmd: "mupdate"
+      listen: "3905"
+      prefork: 1
+    # (mupdate master, only one in the entire cluster)
+    mupdatemaster:
+      active: false
+      cmd: "mupdate -m"
+      listen: "3905"
+      prefork: 1
+
+    # proxies that will connect to the backends
+    imapproxy:
+      active: false
+      cmd: "proxyd"
+      listen: "imap"
+      prefork: 0
+      maxchild: 100
+    imapsproxy:
+      active: false
+      cmd: "proxyd -s"
+      listen: "imaps"
+      prefork: 0
+      maxchild: 100
+    pop3proxy:
+      active: false
+      cmd: "pop3proxyd"
+      listen: "pop3"
+      prefork: 0
+      maxchild: 50
+    pop3sproxy:
+      active: false
+      cmd: "pop3proxyd -s"
+      listen: "pop3s"
+      prefork: 0
+      maxchild: 50
+    lmtpproxy:
+      active: false
+      cmd: "lmtpproxyd"
+      listen: "lmtp"
+      prefork: 1
+      maxchild: 20
+    # ----------------------------------------------
+
+  daemon:
+    # Monitoring Promotheus
+    promstatsd:
+      active: false
+      cmd: "promstatsd"
+
+  events:
+    # this is required
+    checkpoint:
+      active: true
+      cmd: "/usr/sbin/cyrus ctl_cyrusdb -c"
+      period: 30
+    # this is only necessary if using duplicate delivery suppression
+    delprune:
+      active: true
+      cmd: "/usr/sbin/cyrus expire -E 3"
+      at: "0401"
+    # this is only necessary if caching TLS sessions
+    tlsprune:
+      active: true
+      cmd: "/usr/sbin/cyrus tls_prune"
+      at: "0401"
+    # Expire data older than 28 days.
+    deleteprune:
+      active: true
+      cmd: "/usr/sbin/cyrus expire -E 4 -D 28"
+      at: "0430"
+    expungeprune:
+      active: true
+      cmd: "/usr/sbin/cyrus expire -E 4 -X 28"
+      at: "0445"
+
+    # indexing of mailboxes for server side fulltext searches
+    # reindex changed mailboxes (fulltext) approximately every other hour
+    squatter_1:
+      active: false
+      cmd: "/usr/bin/nice -n 19 /usr/sbin/cyrus squatter -s"
+      period: 120
+    # reindex all mailboxes (fulltext) daily
+    squatter_a:
+      active: false
+      cmd: "/usr/sbin/cyrus squatter"
+      at: "0517"
+
+
+# See imapd.conf(5) for more information and more options
+cyrus_imap_default_config:
+  configdirectory: "/var/lib/cyrus"
+  proc_path: "/run/cyrus/proc"
+  mboxname_lockpath: "/run/cyrus/lock"
+  defaultpartition: "default"
+  partition-default: "/var/spool/cyrus/mail"
+  partition-news: "/var/spool/cyrus/news"
+  newsspool: "/var/spool/news"
+  altnamespace: "no"
+  unixhierarchysep: "no"
+  lmtp_downcase_rcpt: "yes"
+  allowanonymouslogin: "no"
+  popminpoll: 1
+  autocreate_quota: 0
+  umask: "077"
+  sieveusehomedir: "no"
+  sievedir: "/var/spool/sieve"
+  httpmodules: "caldav carddav"
+  hashimapspool: "yes"
+  allowplaintext: "yes"
+  sasl_pwcheck_method: "auxprop"
+  sasl_auto_transition: "no"
+  tls_client_ca_dir: "/etc/ssl/certs"
+  tls_session_timeout: 1440
+  lmtpsocket: "/run/cyrus/socket/lmtp"
+  idlesocket: "/run/cyrus/socket/idle"
+  notifysocket: "/run/cyrus/socket/notify"
+  syslog_prefix: "cyrus"

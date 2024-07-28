@@ -1,0 +1,29 @@
+- name: Install packages
+  ansible.builtin.apt:
+    name:
+      - "cyrus-imapd"
+      - "cyrus-admin"
+      - "cyrus-clients"
+  notify: Restart Cyrus IMAP
+
+- name: Configure SSL
+  ansible.builtin.include_tasks: "configure-ssl.yml"
+
+- name: Generate Cyrus IMAP configuration files
+  vars:
+    services: "{{ cyrus_imap_default_services | ansible.builtin.combine(cyrus_imap_services, recursive=true) }}"
+    config: "{{ cyrus_imap_default_config | ansible.builtin.combine(cyrus_imap_config, recursive=true) }}"
+  ansible.builtin.template:
+    src: "templates/{{ item }}"
+    dest: "/etc/{{ item }}"
+    mode: "0644"
+  loop:
+    - "cyrus.conf"
+    - "imapd.conf"
+  notify: Restart Cyrus IMAP
+
+- name: Enable Cyrus IMAP service
+  ansible.builtin.service:
+    name: "cyrus-imapd"
+    state: "started"
+    enabled: true

@@ -1,6 +1,7 @@
 # Ansible role cyrus_imap
 
-FIXME
+WORK IN PROGRESS! DO NOT USE.
+(But stay tuned.)
 
 ## Features
 

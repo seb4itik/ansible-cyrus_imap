@@ -21,9 +21,3 @@
     - "cyrus.conf"
     - "imapd.conf"
   notify: Restart Cyrus IMAP
-
-- name: Enable Cyrus IMAP service
-  ansible.builtin.service:
-    name: "cyrus-imapd"
-    state: "started"
-    enabled: true

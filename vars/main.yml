@@ -28,6 +28,12 @@ cyrus_imap_default_services:
       active: false
       cmd: "/usr/sbin/cyrus promstatsd -c"
 
+  daemon:
+    # Monitoring Prometheus
+    promstatsd:
+      active: false
+      cmd: "promstatsd"
+
   # UNIX sockets start with a slash and are absolute paths
   # you can use a maxchild=# to limit the maximum number of forks of a service
   # you can use babysit=true and maxforkrate=# to keep tight tabs on the service
@@ -173,12 +179,6 @@ cyrus_imap_default_services:
       prefork: 1
       maxchild: 20
     # ----------------------------------------------
-
-  daemon:
-    # Monitoring Promotheus
-    promstatsd:
-      active: false
-      cmd: "promstatsd"
 
   events:
     # this is required

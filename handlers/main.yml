@@ -2,3 +2,4 @@
   ansible.builtin.service:
     name: "cyrus-imapd"
     state: "restarted"
+    enabled: true

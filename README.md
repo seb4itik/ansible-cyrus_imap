@@ -7,8 +7,8 @@ Install and configure Cyrus IMAP server.
 
 - Idempotent.
 - SSL activation.
-- Manage Cyrus daemons (trhough `/etc/cyrus.conf`).
-- Configure IMAP/POP/NNTP/etc. options (trhough `/etc/imapd.conf`).
+- Manage Cyrus daemons (through `/etc/cyrus.conf`).
+- Can configure IMAP/POP/NNTP/etc. options (through `/etc/imapd.conf`).
 - Debian friendly (Ubuntu soon, anyone for Redhat likes and other platforms?).
 - A developer/maintainer willing to receive feedback and bug reports.
 
@@ -25,12 +25,12 @@ This role must be run as `root` but will **not** `become` by itself.
 | `cyrus_imap_user`      | `"cyrus"`    | System user for running daemons.                                                      |
 | `cyrus_imap_ssl`       | `false`      | Activate SSL.                                                                         |
 | `cyrus_imap_ssl_group` | `"ssl-cert"` | Group `slapd` will be added to if `slapd_ssl` (to access keys in `/etc/ssl/private`). |
-| `cyrus_imap_services`  | `{}`         | Configure startup of Cyrus daemons. Will be merged in default values from `cyrus_imap_default_services` (see below). |
-| `cyrus_imap_config`    | `{}`         | Configure services options. Will be merged in default values from `cyrus_imap_default_config` (see below). |
+| `cyrus_imap_services`  | `{}`         | Configure startup of Cyrus daemons. Will be merged with default values from `cyrus_imap_default_services` (see below). |
+| `cyrus_imap_config`    | `{}`         | Configure services options. Will be merged with default values from `cyrus_imap_default_config` (see below). |
 
 ### cyrus_imap_ssl
 
-If `slapd_ssl` is `true`:
+If `cyrus_imap_ssl` is `true`:
 
 - Cyrus IMAP system user (`cyrus_imap_user`) will be added to group `slapd_ssl_group`;
 - `cyrus-imapd` service will be restarted.
@@ -40,7 +40,7 @@ At least, these parameters must be set in `cyrus_imap_config`:
 - `tls_server_cert` (name of a file that should be under `/etc/ssl/certs`);
 - `tls_server_key` (name of a file that should be under `/etc/ssl/private`, owner `root`, group `ssl-cert`, mode `0640`);
 
-Then some SSL services should be activate in `cyrus.conf` trhough `cyrus_imap_services`. For example:
+Then, some SSL services should be activated in `cyrus.conf` through `cyrus_imap_services`. For example:
 
 ```
   vars:
@@ -58,13 +58,13 @@ Then some SSL services should be activate in `cyrus.conf` trhough `cyrus_imap_se
 See `cyrus.conf(5)`.
 
 `cyrus_imap_services` is a dictionnary with four keys, each section of the `cyrus.conf` file:
-- `start`: This  section lists the processes to run before any SERVICES are spawned.
-- `daemon`: This section lists long running daemons to start before any SERVICES are spawned.
+- `start`: This  section lists the processes to run before any services are spawned.
+- `daemon`: This section lists long running daemons to start before any services are spawned.
 - `services`: This section lists the processes that should be spawned to handle client connections made on certain Internet/UNIX sockets.
 - `events`: This  section  lists processes that should be run at specific intervals, similar to cron jobs.
 
 It will be merged with default values from `cyrus_imap_default_services` variable.
-See [vars/main.yml].
+See [vars/main.yml](vars/main.yml).
 
 Section `start`:
 - `active`: `true` or `false`.
@@ -73,13 +73,13 @@ Section `start`:
 Section `daemon`:
 - `active`: `true` or `false`.
 - `cmd`: The command (with options) to spawn as a child process (required).
-- `wait`: Switch: whether or not master(8) should wait for this daemon to successfully start  before  continuing to load (default `n`).
+- `wait`: Whether or not `cyrmaster` should wait for this daemon to successfully start before continuing to load (default `n`).
 
 Section `services`:
 - `active`: `true` or `false`.
 - `cmd`: The command (with options) to spawn as a child process (required).
 - `listen`: The  UNIX or internet socket to listen on (required).
-- `proto`: The protocol used for this service (`tcp`, `tcp4`, `tcp6`, `udp`, `udp4`, `udp6`, default `tcp`).
+- `proto`: The protocol used for this service: `tcp` (default), `tcp4`, `tcp6`, `udp`, `udp4`, or `udp6`.
 - `prefork`:  The number of instances of this service to always have running and waiting for a connection (default 0).
 - `maxchild`: The  maximum number of instances of this service to spawn (default -1, unlimited).
 - `babysit`: If non-zero, will make sure at least one process is pre-forked, and will set the maxforkrate to 10 if it’s zero (default 0).
@@ -278,7 +278,7 @@ cyrus_imap_default_services:
 See `imapd.conf(5)`.
 
 It will be merged with default values from `cyrus_imap_default_config` variable.
-See [vars/main.yml].
+See [vars/main.yml](vars/main.yml).
 
 The default parameters are:
 

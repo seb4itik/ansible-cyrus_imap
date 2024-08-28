@@ -2,6 +2,7 @@
   ansible.builtin.apt:
     name:
       - "cyrus-imapd"
+      - "cyrus-admin"
   notify: Restart Cyrus IMAP
 
 - name: Configure SSL
